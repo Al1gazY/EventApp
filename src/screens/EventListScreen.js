@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Button, FlatList, StyleSheet, TouchableOpacity } from "react-native";
+import { View, FlatList, StyleSheet } from "react-native";
+import { Button, Card, IconButton, Text } from "react-native-paper";
 import { auth, firestore } from "../services/firebase";
-import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { CommonActions } from "@react-navigation/native";
 
 const EventListScreen = ({ navigation }) => {
   const [events, setEvents] = useState([]);
@@ -13,17 +15,12 @@ const EventListScreen = ({ navigation }) => {
     setEvents(eventsList);
   };
 
-  const addToFavourites = async (eventId) => {
+  const deleteEvent = async (eventId) => {
     try {
-      const eventDoc = doc(firestore, "events", eventId);
-      const event = events.find(event => event.id === eventId);
-      const updatedFavourites = event.favourites
-        ? [...event.favourites, auth.currentUser.uid]
-        : [auth.currentUser.uid];
-      await updateDoc(eventDoc, { favourites: updatedFavourites });
+      await deleteDoc(doc(firestore, "events", eventId));
       fetchEvents();
     } catch (error) {
-      alert("Error adding to favourites: " + error.message);
+      alert("Failed to delete event: " + error.message);
     }
   };
 
@@ -32,24 +29,49 @@ const EventListScreen = ({ navigation }) => {
   }, []);
 
   const handleLogout = async () => {
-    await auth.signOut();
-    navigation.navigate("SignIn");
+    try {
+      await auth.signOut();
+  
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: "SignIn" }],
+        })
+      );
+    } catch (error) {
+      alert("Failed to log out: " + error.message);
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Button title="Add Event" onPress={() => navigation.navigate("AddEditEvent")} />
-      <Button title="Favourites" onPress={() => navigation.navigate("Favourites")} />
-      <Button title="Logout" onPress={handleLogout} />
+      <Button mode="contained" onPress={() => navigation.navigate("AddEditEvent")}>
+        Add Event
+      </Button>
+      <Button mode="contained" onPress={() => navigation.navigate("Favourites")}>
+        View Favourites
+      </Button>
+      <Button mode="contained" onPress={handleLogout}>
+        Log Out
+      </Button>
       <FlatList
         data={events}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.eventItem}>
-            <Text style={styles.eventTitle}>{item.title}</Text>
-            <Text>{item.description}</Text>
-            <Button title="Add to Favourites" onPress={() => addToFavourites(item.id)} />
-          </View>
+          <Card style={styles.card}>
+            <Card.Title title={item.title} />
+            <Card.Content>
+              <Text>{item.description}</Text>
+            </Card.Content>
+            {item.creatorId === auth.currentUser.uid && (
+              <Card.Actions>
+                <IconButton
+                  icon="delete"
+                  onPress={() => deleteEvent(item.id)}
+                />
+              </Card.Actions>
+            )}
+          </Card>
         )}
       />
     </View>
@@ -57,9 +79,13 @@ const EventListScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  eventItem: { marginBottom: 15 },
-  eventTitle: { fontSize: 18, fontWeight: "bold" },
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  card: {
+    marginVertical: 10,
+  },
 });
 
 export default EventListScreen;

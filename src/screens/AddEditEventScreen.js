@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, TextInput, Button, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { TextInput, Button } from "react-native-paper";
 import { auth, firestore } from "../services/firebase";
 import { collection, addDoc } from "firebase/firestore";
 
@@ -23,21 +24,30 @@ const AddEditEventScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <TextInput placeholder="Title" value={title} onChangeText={setTitle} style={styles.input} />
+      <TextInput label="Title" value={title} onChangeText={setTitle} style={styles.input} mode="outlined" />
       <TextInput
-        placeholder="Description"
+        label="Description"
         value={description}
         onChangeText={setDescription}
         style={styles.input}
+        mode="outlined"
       />
-      <Button title="Add Event" onPress={handleAddEvent} />
+      <Button mode="contained" onPress={handleAddEvent}>
+        Add Event
+      </Button>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", padding: 20 },
-  input: { marginBottom: 10, borderBottomWidth: 1, padding: 10 },
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+  },
+  input: {
+    marginBottom: 10,
+  },
 });
 
 export default AddEditEventScreen;
