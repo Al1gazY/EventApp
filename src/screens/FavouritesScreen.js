@@ -3,6 +3,7 @@ import { View, FlatList, StyleSheet } from "react-native";
 import { Card, IconButton, Text } from "react-native-paper";
 import { auth, firestore } from "../services/firebase";
 import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
+import { SafeAreaView } from "react-native";
 
 const FavouritesScreen = ({ navigation }) => {
   const [favourites, setFavourites] = useState([]);
@@ -30,6 +31,7 @@ const FavouritesScreen = ({ navigation }) => {
   }, []);
 
   return (
+    <SafeAreaView style={styles.container}>
     <View style={styles.container}>
       <FlatList
         data={favourites}
@@ -50,6 +52,8 @@ const FavouritesScreen = ({ navigation }) => {
         )}
       />
     </View>
+    </SafeAreaView>
+
   );
 };
 

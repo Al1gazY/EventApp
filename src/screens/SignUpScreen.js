@@ -3,7 +3,6 @@ import { View, StyleSheet } from "react-native";
 import { TextInput, Button, Text, useTheme } from "react-native-paper";
 import { auth } from "../services/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { CommonActions } from "@react-navigation/native";
 
 const SignUpScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -18,13 +17,6 @@ const SignUpScreen = ({ navigation }) => {
     }
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-  
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{ name: "EventList" }],
-        })
-      );
     } catch (error) {
       setError(error.message);
     }
@@ -53,7 +45,7 @@ const SignUpScreen = ({ navigation }) => {
       <Button mode="contained" onPress={handleSignUp}>
         Sign Up
       </Button>
-      
+
     </View>
   );
 };

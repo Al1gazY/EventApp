@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { View, FlatList, StyleSheet } from "react-native";
-import { Button, Card, IconButton, Text } from "react-native-paper";
+import { SafeAreaView, View, FlatList, StyleSheet } from "react-native";
+import { Card, IconButton, Text } from "react-native-paper";
 import { auth, firestore } from "../services/firebase";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
-import { CommonActions } from "@react-navigation/native";
 
-const EventListScreen = ({ navigation }) => {
+const EventListScreen = () => {
   const [events, setEvents] = useState([]);
 
   const fetchEvents = async () => {
     const eventsRef = collection(firestore, "events");
     const snapshot = await getDocs(eventsRef);
-    const eventsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const eventsList = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     setEvents(eventsList);
   };
 
@@ -28,32 +27,8 @@ const EventListScreen = ({ navigation }) => {
     fetchEvents();
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await auth.signOut();
-  
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{ name: "SignIn" }],
-        })
-      );
-    } catch (error) {
-      alert("Failed to log out: " + error.message);
-    }
-  };
-
   return (
-    <View style={styles.container}>
-      <Button mode="contained" onPress={() => navigation.navigate("AddEditEvent")}>
-        Add Event
-      </Button>
-      <Button mode="contained" onPress={() => navigation.navigate("Favourites")}>
-        View Favourites
-      </Button>
-      <Button mode="contained" onPress={handleLogout}>
-        Log Out
-      </Button>
+    <SafeAreaView style={styles.container}>
       <FlatList
         data={events}
         keyExtractor={(item) => item.id}
@@ -65,16 +40,13 @@ const EventListScreen = ({ navigation }) => {
             </Card.Content>
             {item.creatorId === auth.currentUser.uid && (
               <Card.Actions>
-                <IconButton
-                  icon="delete"
-                  onPress={() => deleteEvent(item.id)}
-                />
+                <IconButton icon="delete" onPress={() => deleteEvent(item.id)} />
               </Card.Actions>
             )}
           </Card>
         )}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -84,7 +56,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   card: {
-    marginVertical: 10,
+    marginBottom: 10,
   },
 });
 

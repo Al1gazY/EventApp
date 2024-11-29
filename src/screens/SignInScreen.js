@@ -3,14 +3,12 @@ import { View, StyleSheet } from "react-native";
 import { TextInput, Button, Text, useTheme } from "react-native-paper";
 import { auth } from "../services/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { CommonActions } from "@react-navigation/native";
 
 const SignInScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const theme = useTheme();
-
 
   const handleSignIn = async () => {
     if (!email || !password) {
@@ -19,13 +17,6 @@ const SignInScreen = ({ navigation }) => {
     }
     try {
       await signInWithEmailAndPassword(auth, email, password);
-  
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{ name: "EventList" }],
-        })
-      );
     } catch (error) {
       setError(error.message);
     }
