@@ -1,41 +1,39 @@
 import React, { useState, useEffect } from "react";
 import { SafeAreaView, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Card, Text, Chip } from "react-native-paper";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import { firestore } from "../services/firebase";
-import { format } from "date-fns"; 
+import { format } from "date-fns";
 
 const EventListScreen = ({ navigation }) => {
   const [events, setEvents] = useState([]);
 
-  const fetchEvents = async () => {
+  useEffect(() => {
     const eventsRef = collection(firestore, "events");
-    const snapshot = await getDocs(eventsRef);
-    const eventsList = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    setEvents(eventsList);
-  };
+
+    const unsubscribe = onSnapshot(eventsRef, (snapshot) => {
+      const eventsList = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setEvents(eventsList);
+    });
+
+    return () => unsubscribe(); 
+  }, []);
 
   const formatEventDate = (dateString) => {
     try {
-      return format(new Date(dateString), "MMMM dd, yyyy hh:mm a"); 
+      return format(new Date(dateString), "MMMM dd, yyyy hh:mm a");
     } catch {
       return dateString;
     }
   };
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
   const renderEventItem = ({ item }) => (
     <TouchableOpacity
       onPress={() => navigation.navigate("EventDetails", { event: item })}
     >
-      <View style={{ overflow: "hidden", borderRadius: 12, marginVertical: 8 }}>
-        <Card style={styles.card} mode="elevated">
-          {item.image && (
-            <Card.Cover source={{ uri: item.image }} style={styles.image} />
-          )}
+      <View style={styles.cardContainer}>
+        <Card style={styles.card}>
+          {item.image && <Card.Cover source={{ uri: item.image }} style={styles.image} />}
           <Card.Title
             title={item.title}
             titleStyle={styles.title}
@@ -43,9 +41,7 @@ const EventListScreen = ({ navigation }) => {
             subtitleStyle={styles.subtitle}
           />
           <Card.Content>
-            <Chip style={styles.chip}>
-              Date: {formatEventDate(item.date)}
-            </Chip>
+            <Chip style={styles.chip}>Date: {formatEventDate(item.date)}</Chip>
           </Card.Content>
         </Card>
       </View>
@@ -72,6 +68,11 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: 16,
     paddingBottom: 16,
+  },
+  cardContainer: {
+    overflow: "hidden",
+    borderRadius: 12,
+    marginVertical: 8,
   },
   card: {
     elevation: 4,

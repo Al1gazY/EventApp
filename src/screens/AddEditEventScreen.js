@@ -1,13 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SafeAreaView, View, StyleSheet, Image, ScrollView } from "react-native";
 import { TextInput, Button, Text, Switch } from "react-native-paper";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 import { Dropdown } from "react-native-element-dropdown";
 import { auth, firestore } from "../services/firebase";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, updateDoc, doc, getDoc } from "firebase/firestore";
 
-const AddEditEventScreen = ({ navigation }) => {
+const AddEditEventScreen = ({ navigation, route }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
@@ -17,19 +17,58 @@ const AddEditEventScreen = ({ navigation }) => {
   const [location, setLocation] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
 
-  const handleAddEvent = async () => {
+  const { eventId } = route.params || {}; 
+
+  useEffect(() => {
+    if (eventId) {
+      const fetchEventData = async () => {
+        try {
+          const docRef = doc(firestore, "events", eventId);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const eventData = docSnap.data();
+            setTitle(eventData.title);
+            setDescription(eventData.description);
+            setImage(eventData.image);
+            setCategory(eventData.category);
+            setDate(new Date(eventData.date));
+            setLocation(eventData.location);
+            setIsPrivate(eventData.isPrivate);
+          }
+        } catch (error) {
+          alert("Failed to load event details: " + error.message);
+        }
+      };
+      fetchEventData();
+    }
+  }, [eventId]);
+
+  const handleSaveEvent = async () => {
     try {
-      const eventsRef = collection(firestore, "events");
-      await addDoc(eventsRef, {
-        title,
-        description,
-        image,
-        category,
-        date: date.toISOString(),
-        location,
-        isPrivate,
-        creatorId: auth.currentUser.uid,
-      });
+      if (eventId) {
+        const docRef = doc(firestore, "events", eventId);
+        await updateDoc(docRef, {
+          title,
+          description,
+          image,
+          category,
+          date: date.toISOString(),
+          location,
+          isPrivate,
+        });
+      } else {
+        const eventsRef = collection(firestore, "events");
+        await addDoc(eventsRef, {
+          title,
+          description,
+          image,
+          category,
+          date: date.toISOString(),
+          location,
+          isPrivate,
+          creatorId: auth.currentUser.uid,
+        });
+      }
       navigation.goBack();
     } catch (error) {
       alert(error.message);
@@ -63,7 +102,7 @@ const AddEditEventScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Create New Event</Text>
+        <Text style={styles.title}>{eventId ? "Edit Event" : "Create New Event"}</Text>
         <TextInput
           label="Title"
           value={title}
@@ -80,7 +119,7 @@ const AddEditEventScreen = ({ navigation }) => {
           multiline
         />
         <Button mode="contained" onPress={pickImage} style={styles.button}>
-          Pick an Image
+          {image ? "Change Image" : "Pick an Image"}
         </Button>
         {image && <Image source={{ uri: image }} style={styles.image} />}
         <Button
@@ -126,8 +165,8 @@ const AddEditEventScreen = ({ navigation }) => {
             color="#6200ea"
           />
         </View>
-        <Button mode="contained" onPress={handleAddEvent} style={styles.addButton}>
-          Add Event
+        <Button mode="contained" onPress={handleSaveEvent} style={styles.addButton}>
+          {eventId ? "Save Changes" : "Add Event"}
         </Button>
       </ScrollView>
     </SafeAreaView>

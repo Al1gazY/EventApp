@@ -3,7 +3,7 @@ import { SafeAreaView, FlatList, StyleSheet, TouchableOpacity, View } from "reac
 import { Card, Text, Chip, IconButton } from "react-native-paper";
 import { auth, firestore } from "../services/firebase";
 import { collection, onSnapshot, updateDoc, doc } from "firebase/firestore";
-import { format } from "date-fns"; 
+import { format } from "date-fns";
 
 const FavouritesScreen = ({ navigation }) => {
   const [favourites, setFavourites] = useState([]);
@@ -15,7 +15,6 @@ const FavouritesScreen = ({ navigation }) => {
         .filter((event) => event.favourites?.includes(auth.currentUser.uid));
       setFavourites(favouriteEvents);
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -39,11 +38,9 @@ const FavouritesScreen = ({ navigation }) => {
     <TouchableOpacity
       onPress={() => navigation.navigate("EventDetails", { event: item })}
     >
-      <View style={{ overflow: "hidden", borderRadius: 12, marginVertical: 8 }}>
-        <Card style={styles.card} mode="elevated">
-          {item.image && (
-            <Card.Cover source={{ uri: item.image }} style={styles.image} />
-          )}
+      <View style={styles.cardContainer}>
+        <Card style={styles.card}>
+          {item.image && <Card.Cover source={{ uri: item.image }} style={styles.image} />}
           <Card.Title
             title={item.title}
             titleStyle={styles.title}
@@ -51,15 +48,13 @@ const FavouritesScreen = ({ navigation }) => {
             subtitleStyle={styles.subtitle}
           />
           <Card.Content>
-            <Chip style={styles.chip}>
-              Date: {formatEventDate(item.date)}
-            </Chip>
+            <Chip style={styles.chip}>Date: {formatEventDate(item.date)}</Chip>
           </Card.Content>
-          <Card.Actions style={styles.actions}>
+          <Card.Actions>
             <IconButton
               icon="heart-broken"
               color="#e63946"
-              size={28}
+              size={24}
               onPress={() => removeFromFavourites(item.id)}
             />
           </Card.Actions>
@@ -89,6 +84,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 16,
   },
+  cardContainer: {
+    overflow: "hidden",
+    borderRadius: 12,
+    marginVertical: 8,
+  },
   card: {
     elevation: 4,
   },
@@ -109,11 +109,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     backgroundColor: "#e0f7fa",
     borderRadius: 20,
-  },
-  actions: {
-    justifyContent: "flex-end",
-    marginVertical: 8,
-    paddingHorizontal: 8,
   },
 });
 
