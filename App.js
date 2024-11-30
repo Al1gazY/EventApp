@@ -6,6 +6,7 @@ import SignInScreen from "./src/screens/SignInScreen";
 import SignUpScreen from "./src/screens/SignUpScreen";
 import TabNavigator from "./src/navigation/TabNavigator";
 import { auth } from "./src/services/firebase";
+import EventDetailsScreen from "./src/screens/EventDetailsScreen";
 
 const Stack = createStackNavigator();
 
@@ -38,11 +39,17 @@ const App = () => {
       <NavigationContainer>
         <Stack.Navigator>
           {user ? (
-            <Stack.Screen
-              name="TabNavigator"
-              component={TabNavigator}
-              options={{ headerShown: false }}
-            />
+            <>
+              <Stack.Screen
+                name="Back"
+                component={TabNavigator}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="EventDetails"
+                component={EventDetailsScreen}
+              />
+            </>
           ) : (
             <>
               <Stack.Screen name="SignIn" component={SignInScreen} />

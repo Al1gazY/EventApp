@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { SafeAreaView, View, FlatList, StyleSheet } from "react-native";
-import { Card, IconButton, Text } from "react-native-paper";
-import { auth, firestore } from "../services/firebase";
-import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { SafeAreaView, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Card, Text, Chip } from "react-native-paper";
+import { collection, getDocs } from "firebase/firestore";
+import { firestore } from "../services/firebase";
+import { format } from "date-fns"; 
 
-const EventListScreen = () => {
+const EventListScreen = ({ navigation }) => {
   const [events, setEvents] = useState([]);
 
   const fetchEvents = async () => {
@@ -14,12 +15,11 @@ const EventListScreen = () => {
     setEvents(eventsList);
   };
 
-  const deleteEvent = async (eventId) => {
+  const formatEventDate = (dateString) => {
     try {
-      await deleteDoc(doc(firestore, "events", eventId));
-      fetchEvents();
-    } catch (error) {
-      alert("Failed to delete event: " + error.message);
+      return format(new Date(dateString), "MMMM dd, yyyy hh:mm a"); 
+    } catch {
+      return dateString;
     }
   };
 
@@ -27,24 +27,38 @@ const EventListScreen = () => {
     fetchEvents();
   }, []);
 
+  const renderEventItem = ({ item }) => (
+    <TouchableOpacity
+      onPress={() => navigation.navigate("EventDetails", { event: item })}
+    >
+      <View style={{ overflow: "hidden", borderRadius: 12, marginVertical: 8 }}>
+        <Card style={styles.card} mode="elevated">
+          {item.image && (
+            <Card.Cover source={{ uri: item.image }} style={styles.image} />
+          )}
+          <Card.Title
+            title={item.title}
+            titleStyle={styles.title}
+            subtitle={item.location}
+            subtitleStyle={styles.subtitle}
+          />
+          <Card.Content>
+            <Chip style={styles.chip}>
+              Date: {formatEventDate(item.date)}
+            </Chip>
+          </Card.Content>
+        </Card>
+      </View>
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
         data={events}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <Card style={styles.card}>
-            <Card.Title title={item.title} />
-            <Card.Content>
-              <Text>{item.description}</Text>
-            </Card.Content>
-            {item.creatorId === auth.currentUser.uid && (
-              <Card.Actions>
-                <IconButton icon="delete" onPress={() => deleteEvent(item.id)} />
-              </Card.Actions>
-            )}
-          </Card>
-        )}
+        renderItem={renderEventItem}
+        contentContainerStyle={styles.list}
       />
     </SafeAreaView>
   );
@@ -53,10 +67,32 @@ const EventListScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    backgroundColor: "#f9f9f9",
+  },
+  list: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
   },
   card: {
-    marginBottom: 10,
+    elevation: 4,
+  },
+  image: {
+    height: 180,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#777",
+  },
+  chip: {
+    alignSelf: "flex-start",
+    marginTop: 8,
+    backgroundColor: "#e0f7fa",
+    borderRadius: 20,
   },
 });
 
